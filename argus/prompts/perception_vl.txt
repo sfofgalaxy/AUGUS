@@ -1,0 +1,13 @@
+Describe this single image briefly for privacy analysis. Output in this exact format:
+
+TAG: <one primary tag from: document, id_card, landmark, wedding, workplace, vehicle, navigation, food_local, signage, luxury, graduation, hospital, school, travel, selfie, meme, screenshot, product, scenery, pet, plain>
+
+CAPTION: <1-2 sentence description of what is visible — mention any text, signs, brands, people, buildings, maps, documents, screens, or identifiable objects>
+
+ENTITIES: <comma-separated list of explicit, identity-relevant strings extracted from visible text or scene; if none, write "none"; do not invent>
+
+Example:
+
+TAG: navigation
+CAPTION: Car dashboard navigation showing road labels and a destination marker; partial road names readable.
+ENTITIES: 北四环, 朝阳门

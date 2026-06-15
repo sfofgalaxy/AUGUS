@@ -1,0 +1,33 @@
+{
+  "user_id": "sample_user_001",
+  "platform": "synthetic",
+  "metadata": {
+    "nickname": "Sample User",
+    "bio": "Weekend runner, coffee lover, and graduate student.",
+    "ip_location": "California"
+  },
+  "posts": [
+    {
+      "post_id": "post_001",
+      "title": "Morning routine",
+      "caption": "Early run near campus, then coffee before the lab meeting.",
+      "tags": ["running", "campus", "coffee"],
+      "timestamp": "2026-01-10T08:30:00Z",
+      "media_files": [],
+      "metadata": {
+        "location": null
+      }
+    },
+    {
+      "post_id": "post_002",
+      "title": "Desk cleanup",
+      "caption": "Finally organized the papers for my privacy and security seminar.",
+      "tags": ["gradschool", "research"],
+      "timestamp": "2026-01-12T19:10:00Z",
+      "media_files": [],
+      "metadata": {
+        "location": null
+      }
+    }
+  ]
+}

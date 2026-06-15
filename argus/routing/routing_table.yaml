@@ -1,0 +1,164 @@
+# AMTR routing table — fast path. (revision §6.4)
+#
+# Each rule is matched in order; the first match wins. Fields:
+#   when:
+#     attribute_class : optional, top-level (identity / location / social / ...)
+#     attribute       : optional, exact slot e.g. "location.home"
+#     vl_tag          : optional, perception VL tag(s) (str or list)
+#     entity_type     : optional, entity type present in perceptual_signature.entities
+#     region_hint     : optional, "cn" / "overseas" / "unknown"
+#   route:
+#     model       : "gemini" / "qwen" / "claude" / "gpt" / "auto"
+#     tool_family : one of TOOL_FAMILIES from argus.types
+#     rationale   : short human-readable note (kept verbatim in the decision log)
+#
+# Model selection rationale (revision §6.3):
+#   Qwen3.7-Max: Chinese text/entity reasoning
+#   Gemini   : high-resolution visual deep-dive
+#   Claude   : long-chain planning / reflection
+#   GPT-4o   : cross-modal grounding verification (cross-family)
+#   auto     : whatever the runtime config maps to (used in fallback)
+#
+# To extend: append to `rules`. Order matters — put more specific rules first.
+
+version: 1
+
+rules:
+  # ── Location: home ──
+  - name: "home_via_navigation_screenshot"
+    when:
+      attribute: "location.home"
+      vl_tag: ["navigation", "screenshot"]
+    route: { model: "qwen",   tool_family: "map_search",
+             rationale: "Nav UI text → POI lookup; Qwen for CN map text" }
+
+  - name: "home_via_landmark_photo"
+    when:
+      attribute: "location.home"
+      vl_tag: ["landmark", "scenery", "signage"]
+    route: { model: "gemini", tool_family: "map_search",
+             rationale: "Landmark cue → visual detail, then map lookup" }
+
+  - name: "home_via_address_text"
+    when:
+      attribute: "location.home"
+      entity_type: "address_fragments"
+      region_hint: "cn"
+    route: { model: "qwen",   tool_family: "map_search",
+             rationale: "Chinese address fragment → amap POI search" }
+
+  - name: "home_via_address_text_overseas"
+    when:
+      attribute: "location.home"
+      entity_type: "address_fragments"
+      region_hint: "overseas"
+    route: { model: "gemini", tool_family: "map_search",
+             rationale: "English address fragment → google maps" }
+
+  # ── Location: work ──
+  - name: "work_via_logo_or_badge"
+    when:
+      attribute: "location.work"
+      vl_tag: ["workplace", "signage"]
+    route: { model: "gemini", tool_family: "web_search",
+             rationale: "Office logo/badge → extract entity, then web verify" }
+
+  # ── Identity: workplace via brand/logo ──
+  - name: "workplace_via_brand"
+    when:
+      attribute_class: "occupation"
+      vl_tag: ["workplace"]
+    route: { model: "gemini", tool_family: "web_search",
+             rationale: "Workplace photo → extract visible entity, then web verify" }
+
+  - name: "workplace_via_text"
+    when:
+      attribute_class: "occupation"
+      entity_type: "edu_keywords"
+    route: { model: "claude", tool_family: "web_search",
+             rationale: "Institution / workplace string → web verify" }
+
+  # ── Identity: id_card / document ──
+  - name: "id_doc_zoom_first"
+    when:
+      attribute: "identity.id_number"
+      vl_tag: ["id_card", "document"]
+    route: { model: "gemini", tool_family: "zoom",
+             rationale: "Document → crop+adaptive_zoom before OCR" }
+
+  - name: "id_doc_after_zoom"
+    when:
+      attribute: "identity.id_number"
+      entity_type: "id_keywords"
+    route: { model: "qwen",   tool_family: "ocr",
+             rationale: "After zoom, re-OCR for fields; Qwen for CN" }
+
+  # ── Education ──
+  - name: "education_institution"
+    when:
+      attribute: "education.institution"
+      entity_type: "edu_keywords"
+    route: { model: "claude", tool_family: "web_search",
+             rationale: "University / department string → web verify" }
+
+  # ── Financial: income via brand/luxury ──
+  - name: "income_via_brand"
+    when:
+      attribute: "financial.income"
+      vl_tag: ["luxury", "vehicle", "product"]
+    route: { model: "gemini", tool_family: "web_search",
+             rationale: "Brand/luxury cue → identify visible entity, then price lookup" }
+
+  - name: "income_followup_price"
+    when:
+      attribute: "financial.income"
+      entity_type: "brand_names"
+    route: { model: "claude", tool_family: "web_search",
+             rationale: "Brand name known → search retail price" }
+
+  # ── Social: relationship via group photo ──
+  - name: "relationship_wedding"
+    when:
+      attribute: "social.relationship"
+      vl_tag: ["wedding"]
+    route: { model: "gemini", tool_family: "web_search",
+             rationale: "Wedding photo → extract venue/person clues, then web verify" }
+
+  # ── Travel ──
+  - name: "travel_via_landmark"
+    when:
+      attribute: "lifestyle.travel"
+      vl_tag: ["landmark", "travel"]
+    route: { model: "gemini", tool_family: "map_search",
+             rationale: "Landmark → identify destination, then map verify" }
+
+  # ── Class-level fallbacks (catch-all by attribute_class) ──
+  - name: "fallback_location_class"
+    when:
+      attribute_class: "location"
+    route: { model: "gemini", tool_family: "map_search",
+             rationale: "Default for any location attribute" }
+
+  - name: "fallback_identity_class"
+    when:
+      attribute_class: "identity"
+    route: { model: "claude", tool_family: "web_search",
+             rationale: "Default for identity verification" }
+
+  - name: "fallback_financial_class"
+    when:
+      attribute_class: "financial"
+    route: { model: "gemini", tool_family: "web_search",
+             rationale: "Default for financial / consumption signals" }
+
+  - name: "fallback_social_class"
+    when:
+      attribute_class: "social"
+    route: { model: "claude", tool_family: "web_search",
+             rationale: "Default for social/relationship inference" }
+
+# Default route used when no rule matches and the LLM fallback is disabled.
+default:
+  model:       "auto"
+  tool_family: "web_search"
+  rationale:   "no rule matched; default web search"
