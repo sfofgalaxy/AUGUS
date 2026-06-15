@@ -1,0 +1,7 @@
+# Optional local OCR dependencies for PaddleOCR-VL-1.5.
+# Install only if you want to use `run_ocr` locally.
+torch>=2.4.0
+transformers>=4.57.0
+accelerate>=0.34.0
+sentencepiece>=0.2.0
+protobuf>=4.25.0
