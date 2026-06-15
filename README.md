@@ -33,48 +33,7 @@ pip install -r requirements-ocr.txt
 
 ## Configure
 
-Edit `.env`. Set only the providers/tools you use.
-
-Backbone:
-
-- `ARGUS_ROUTER_BASE_URL`
-- `ARGUS_ROUTER_API_KEY`
-- `ARGUS_ROUTER_MODEL`
-- `ARGUS_INVESTIGATOR_MODEL`
-- `ARGUS_VERIFIER_MODEL`
-- `ARGUS_NARRATIVE_MODEL`
-
-Qwen / DashScope:
-
-- `DASHSCOPE_API_KEY`
-- `ARGUS_QWEN_TEXT_MODEL`
-- `ARGUS_QWEN_VL_MODEL`
-- `ARGUS_QWEN_PERCEPTION_MAX_SIDE`
-- `ARGUS_QWEN_IMAGE_MAX_BYTES`
-- `ARGUS_QWEN_PAYLOAD_MAX_CHARS`
-
-Gemini / Vertex:
-
-- `GOOGLE_KEY_PATH`
-- `GOOGLE_CLOUD_LOCATION`
-- `ARGUS_GEMINI_MODEL`
-
-Tools:
-
-- `ARGUS_SKILLS_DIR`
-- `ARGUS_TOOL_DEVICE`
-- `ARGUS_IMAGE_CROPPER_TEMP_DIR`
-- `SERPAPI_API_KEY`
-- `AMAP_API_KEY`
-
-Runtime:
-
-- `ARGUS_CACHE_DIR`
-- `ARGUS_DISABLE_CACHE`
-- `ARGUS_CONTINUE_ON_ERROR`
-- `ARGUS_LLM_MAX_RETRIES`
-- `ARGUS_GEMINI_MAX_RETRIES`
-- `ARGUS_LLM_RETRY_BASE_INTERVAL`
+Edit `.env`. See `.env.example` for all model, runtime, and tool settings.
 
 ## Input
 
@@ -152,14 +111,6 @@ Model override:
 ```bash
 MODEL_PROVIDER=qwen MODEL=qwen3.7-max BASELINE=text_only INPUT=inputs/users OUTPUT_DIR=outputs/baselines/qwen_text \
 bash scripts/argus/run_json_baseline.sh
-```
-
-## Tool Check
-
-```bash
-bash scripts/argus/test_local_tools.sh
-bash scripts/argus/test_local_tools.sh --network
-GPU=0 ARGUS_TOOL_DEVICE=auto bash scripts/argus/test_local_tools.sh --ocr
 ```
 
 ## Citation
