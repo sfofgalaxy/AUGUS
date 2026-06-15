@@ -127,10 +127,14 @@ def init_tool_registry() -> None:
     load_env()
     root = project_root()
     os.environ.setdefault("PROJECT_DIR", str(root))
+    default_skills_dir = Path(__file__).resolve().parent / "skill_adapters"
     ToolRegistry.configure({
         "device": os.environ.get("ARGUS_TOOL_DEVICE", "cpu"),
         "serpapi_api_key": os.environ.get("SERPAPI_API_KEY", ""),
         "amap_api_key": os.environ.get("AMAP_API_KEY", ""),
-        "image_cropper_temp_dir": str(root / "temp_crops"),
-        "skills_dir": str(Path(__file__).resolve().parent / "skill_adapters"),
+        "image_cropper_temp_dir": os.environ.get(
+            "ARGUS_IMAGE_CROPPER_TEMP_DIR",
+            str(root / "temp_crops"),
+        ),
+        "skills_dir": os.environ.get("ARGUS_SKILLS_DIR", str(default_skills_dir)),
     })
